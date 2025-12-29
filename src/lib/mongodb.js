@@ -1,19 +1,17 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI) {
-  throw new Error(
-    "Missing MONGODB_URI. Please define it in your .env.local (MongoDB Atlas connection string)."
-  );
-}
-
 let cached = global.mongoose;
 if (!cached) {
   cached = global.mongoose = { conn: null, promise: null };
 }
 
 export async function dbConnect() {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error(
+      "Missing MONGODB_URI. Please define it in your Vercel Project Settings (Environment Variables) or in a local .env.local file."
+    );
+  }
   if (cached.conn) return cached.conn;
   if (!cached.promise) {
     const options = {
@@ -23,7 +21,7 @@ export async function dbConnect() {
     };
 
     cached.promise = mongoose
-      .connect(MONGODB_URI, options)
+      .connect(uri, options)
       .then((mongooseInstance) => mongooseInstance)
       .catch((err) => {
         console.error("[MongoDB] Connection error:", err?.message);
